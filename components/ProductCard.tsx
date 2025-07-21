@@ -49,8 +49,8 @@ export default function ProductCard({ product }: { product: Product }) {
                 <ShoppingCart className="h-5 w-5 text-blue-900" />
             </button>
 
-            <Card className={`${getBackgroundColor()} transition-all duration-300 rounded-tr-[80px] h-[275px] relative`}>
-                <Link href={`/products/${product.$id}`}>
+            <Link href={`/products/${product.name.replace(" ", "-")}/${product.$id}`}>
+                <Card className={`${getBackgroundColor()} transition-all duration-300 rounded-tr-[80px] h-[275px] relative`}>
                     {/* Product Image - Positioned to overflow from top and aligned to left */}
                     <div className="absolute -top-[125px] left-6 flex">
                         <Image
@@ -61,34 +61,35 @@ export default function ProductCard({ product }: { product: Product }) {
                             className="object-contain h-[250px] transform transition-transform duration-300 group-hover:scale-105"
                         />
                     </div>
-                </Link>
 
-                {/* Product Details - Add padding top to make space for the image */}
-                <div className="p-4 pt-[125px] h-full flex flex-col justify-between">
-                    <div>
-                        {/* Rating Stars */}
-                        <div className="flex gap-0.5 mb-3">
-                            {[...Array(5)].map((_, i) => (
-                                <Star
-                                    key={i}
-                                    size={18}
-                                    className="fill-orange-400 text-orange-400 group-hover:text-white group-hover:fill-transparent"
-                                />
-                            ))}
+                    {/* Product Details - Add padding top to make space for the image */}
+                    <div className="p-4 pt-[125px] h-full flex flex-col justify-between">
+                        <div>
+                            {/* Rating Stars */}
+                            <div className="flex gap-0.5 mb-3">
+                                {[...Array(5)].map((_, i) => (
+                                    <Star
+                                        key={i}
+                                        size={18}
+                                        className="fill-orange-400 text-orange-400 group-hover:text-white group-hover:fill-transparent"
+                                    />
+                                ))}
+                            </div>
+
+                            {/* Product Name and Tablet Count */}
+                            <h3 className="font-bold text-xl group-hover:text-white text-gray-900 mb-1 min-h-[3rem] flex items-center">
+                                {getFormattedName()} <span className="group-hover:text-white text-gray-900">({getTabletCount()})</span>
+                            </h3>
                         </div>
 
-                        {/* Product Name and Tablet Count */}
-                        <h3 className="font-bold text-xl group-hover:text-white text-gray-900 mb-1 min-h-[3rem] flex items-center">
-                            {getFormattedName()} <span className="group-hover:text-white text-gray-900">({getTabletCount()})</span>
-                        </h3>
+                        {/* Price */}
+                        <p className="text-2xl font-bold text-blue-900 group-hover:text-white">
+                            Rs. {Number(price).toFixed(Number(price) % 1 === 0 ? 0 : 2)}
+                        </p>
                     </div>
 
-                    {/* Price */}
-                    <p className="text-2xl font-bold text-blue-900 group-hover:text-white">
-                        Rs. {Number(price).toFixed(Number(price) % 1 === 0 ? 0 : 2)}
-                    </p>
-                </div>
-            </Card>
+                </Card>
+            </Link>
         </div>
     )
 }

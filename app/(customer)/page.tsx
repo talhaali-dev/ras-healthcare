@@ -15,7 +15,7 @@ export default function Page() {
                 <FeaturedProducts />
                 <RasAI />
                 <AvailableInStores />
-                <ProductBenefits />
+                {/* <ProductBenefits /> */}
                 <Testimonials />
                 <Blog />
             </main>

@@ -4,28 +4,35 @@ import { useQuery } from "@tanstack/react-query"
 import { getSettings } from "@/actions/settings.actions"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
-export default function Topbar() {
-  const { data: settings, isLoading, isError } = useQuery({
-    queryKey: ["settings"],
-    queryFn: getSettings,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  })
-
-  if (isLoading) {
-    return (
-      <div className="bg-primary h-10 flex items-center justify-center">
-        <Loader2 className="h-4 w-4 animate-spin text-primary-foreground" />
-      </div>
-    )
+export default function Topbar({ settings }: {
+  settings: {
+    topbar_enabled: boolean,
+    topbar_bg_color: string, 
+    topbar_text_color: string, 
+    topbar_text: string
   }
+}) {
+  // const { data: settings, isLoading, isError } = useQuery({
+  //   queryKey: ["settings"],
+  //   queryFn: getSettings,
+  //   staleTime: 1000 * 60 * 5, // 5 minutes
+  // })
 
-  if (isError) {
-    return (
-      <Alert variant="destructive">
-        <AlertDescription>Failed to load topbar settings.</AlertDescription>
-      </Alert>
-    )
-  }
+  // if (isLoading) {
+  //   return (
+  //     <div className="bg-primary h-10 flex items-center justify-center">
+  //       <Loader2 className="h-4 w-4 animate-spin text-primary-foreground" />
+  //     </div>
+  //   )
+  // }
+
+  // if (isError) {
+  //   return (
+  //     <Alert variant="destructive">
+  //       <AlertDescription>Failed to load topbar settings.</AlertDescription>
+  //     </Alert>
+  //   )
+  // }
 
   if (!settings?.topbar_enabled) {
     return null

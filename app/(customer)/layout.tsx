@@ -1,18 +1,20 @@
+import { getSettings } from "@/actions/settings.actions";
 import WhatsAppButton from "@/components/FloatingButton";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import { CartProvider } from "@/components/providers/CartContext";
 import Topbar from "@/components/Topbar";
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default async function Layout({ children }: { children: React.ReactNode }) {
+    const settings = await getSettings()
     return (
         <div>
             <CartProvider>
-                <Topbar />
+                <Topbar settings={settings} />
+                <div className="min-h-screen">
                 <Navbar />
-                <div className="min-h-screen
-            pt-13 md:pt-16 lg:pt-16
-        ">{children}</div>
+                    {children}
+                    </div>
                 <WhatsAppButton />
                 <Footer />
             </CartProvider>
