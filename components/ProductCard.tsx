@@ -78,7 +78,7 @@ export default function ProductCard({ product }: { product: Product }) {
 
                             {/* Product Name and Tablet Count */}
                             <h3 className="font-bold text-xl group-hover:text-white text-gray-900 mb-1 min-h-[3rem] flex items-center">
-                                {getFormattedName()} <span className="group-hover:text-white text-gray-900">({getTabletCount()})</span>
+                                {product.name}
                             </h3>
                         </div>
 
