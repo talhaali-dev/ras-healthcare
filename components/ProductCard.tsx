@@ -18,6 +18,7 @@ export default function ProductCard({ product }: { product: Product }) {
         if (productName.includes("calcar")) return "hover:bg-red-500"
         if (productName.includes("caldense")) return "hover:bg-blue-500"
         if (productName.includes("vitam-x")) return "hover:bg-black"
+        if (productName.includes("magnesium")) return "hover:bg-[#f0dbb0]"
         return "hover:bg-blue-500"
     }
 

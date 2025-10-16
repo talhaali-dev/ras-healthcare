@@ -23,7 +23,7 @@ export const createProduct = async (ProductData: CreateProductParams) => {
       {
         name: ProductData.name,
         description: ProductData.description,
-        price: ProductData.price,
+        price: ProductData.price.toString(),
         images: images,
         stock: `${ProductData.quantity}`,
         benefits: ProductData.benefits,

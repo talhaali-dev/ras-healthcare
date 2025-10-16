@@ -17,7 +17,7 @@ const ProductSlider = ({ products }: { products: Product[] }) => {
         hideOnClick: true,
         enabled: true      }}
       pagination={{ clickable: true }}
-      autoplay={{ delay: 3000 }}
+      autoplay={{ delay: 5000 }}
       breakpoints={{
         640: {
           slidesPerView: 2,
