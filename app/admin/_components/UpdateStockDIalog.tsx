@@ -23,9 +23,11 @@ import { z } from "zod";
 import { updateStock } from "../_actions/product";
 import { useState } from "react";
 import SubmitButton from "@/components/SubmitBtn";
+
 const UpdateStockSchema = z.object({
-  stock: z.string(),
+  stock: z.coerce.number().min(0, "Stock must be non-negative"),
 });
+
 export function UpdateStockDialog({
   children,
   productId,
@@ -33,28 +35,29 @@ export function UpdateStockDialog({
 }: {
   children: React.ReactNode;
   productId: string;
-  quantity: string;
+  quantity: number;
 }) {
   const [isLoading, setisLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const form = useForm({
     resolver: zodResolver(UpdateStockSchema),
     defaultValues: {
-      stock: Number(quantity).toFixed(0),
+      stock: quantity || 0,
     },
   });
 
   const onSubmit = async (data: z.infer<typeof UpdateStockSchema>) => {
     setisLoading(true);
     try {
-      const { stock } = data;
-      await updateStock(productId, stock);
+      await updateStock(productId, data.stock);
       setOpen(false);
+      form.reset();
     } catch (error) {
-      console.log("error while submitting stock update form", error);
+      console.error("Error while submitting stock update form:", error);
     }
     setisLoading(false);
   };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
@@ -71,10 +74,14 @@ export function UpdateStockDialog({
                 <FormItem>
                   <FormLabel>Quantity</FormLabel>
                   <FormControl>
-                    <Input placeholder="Stock" {...field} />
+                    <Input
+                      type="number"
+                      placeholder="Stock"
+                      {...field}
+                    />
                   </FormControl>
                   <FormDescription>
-                    This is your public display name.
+                    Current stock: {quantity}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

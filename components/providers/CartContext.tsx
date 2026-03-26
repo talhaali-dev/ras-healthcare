@@ -15,11 +15,11 @@ interface OrderItem {
   name: string;
   quantity: number;
   price: number;
-  totalPrice: number; // quantity * price
+  totalPrice: number;
 }
 
 interface CartContextType {
-  cart: Product[];
+  cart: (Product & { quantity: number })[];
   addToCart: (product: Product, quantity: number) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
@@ -38,8 +38,18 @@ interface CartProviderProps {
   children: ReactNode;
 }
 
+// Helper to safely parse cart items from localStorage
+function parseCartItems(items: any[]): (Product & { quantity: number })[] {
+  return items.map(item => ({
+    ...item,
+    price: typeof item.price === "string" ? parseFloat(item.price) : (item.price || 0),
+    stock: typeof item.stock === "string" ? parseInt(item.stock, 10) : (item.stock || 0),
+    quantity: typeof item.quantity === "string" ? parseInt(item.quantity, 10) : (item.quantity || 1),
+  }));
+}
+
 export function CartProvider({ children }: CartProviderProps) {
-  const [cart, setCart] = useState<Product[]>([]);
+  const [cart, setCart] = useState<(Product & { quantity: number })[]>([]);
   const [coupon, setCoupon] = useState<{
     code: string;
     discountAmount: number;
@@ -49,20 +59,28 @@ export function CartProvider({ children }: CartProviderProps) {
 
   // Load cart and coupon from localStorage when the component mounts
   useEffect(() => {
-    const savedCart = localStorage.getItem("cart");
-    const savedCoupon = localStorage.getItem("coupon");
-    if (savedCart) {
-      setCart(JSON.parse(savedCart));
-    }
-    if (savedCoupon) {
-      setCoupon(JSON.parse(savedCoupon));
+    try {
+      const savedCart = localStorage.getItem("cart");
+      const savedCoupon = localStorage.getItem("coupon");
+      if (savedCart) {
+        setCart(parseCartItems(JSON.parse(savedCart)));
+      }
+      if (savedCoupon) {
+        setCoupon(JSON.parse(savedCoupon));
+      }
+    } catch (error) {
+      console.error("Error loading cart from localStorage:", error);
     }
   }, []);
 
   // Save cart and coupon to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(cart));
-    localStorage.setItem("coupon", JSON.stringify(coupon));
+    try {
+      localStorage.setItem("cart", JSON.stringify(cart));
+      localStorage.setItem("coupon", JSON.stringify(coupon));
+    } catch (error) {
+      console.error("Error saving cart to localStorage:", error);
+    }
   }, [cart, coupon]);
 
   const addToCart = (product: Product, quantity: number) => {
@@ -73,7 +91,10 @@ export function CartProvider({ children }: CartProviderProps) {
 
       if (existingItemIndex !== -1) {
         const updatedCart = [...prevCart];
-        updatedCart[existingItemIndex].quantity += quantity;
+        updatedCart[existingItemIndex] = {
+          ...updatedCart[existingItemIndex],
+          quantity: updatedCart[existingItemIndex].quantity + quantity,
+        };
         return updatedCart;
       } else {
         toast.success(`${product.name} added to cart`);
@@ -88,6 +109,7 @@ export function CartProvider({ children }: CartProviderProps) {
   };
 
   const updateQuantity = (productId: string, quantity: number) => {
+    if (quantity < 1) return;
     setCart((prevCart) =>
       prevCart.map((item) =>
         item.$id === productId ? { ...item, quantity } : item
@@ -103,10 +125,9 @@ export function CartProvider({ children }: CartProviderProps) {
     localStorage.removeItem("coupon");
   };
 
-  // Compute the total price of all items in the cart
   const getTotalPrice = () => {
     const subtotal = cart.reduce(
-      (acc, item) => acc + Number(item.price) * Number(item.quantity),
+      (acc, item) => acc + (item.price || 0) * item.quantity,
       0
     );
     const discountedSubtotal = coupon
@@ -115,24 +136,22 @@ export function CartProvider({ children }: CartProviderProps) {
     const totalWithDelivery = discountedSubtotal + DELIVERY_CHARGE;
     return {
       total: Number(totalWithDelivery.toFixed(2)),
-      subtotal: subtotal,
+      subtotal: Number(subtotal.toFixed(2)),
       delivery: DELIVERY_CHARGE,
     };
   };
 
-  // Compute the total number of items in the cart
   const getTotalItems = (): number => {
-    return cart.reduce((acc, item) => acc + Number(item.quantity), 0);
+    return cart.reduce((acc, item) => acc + item.quantity, 0);
   };
 
-  // Get a list of order items with necessary details
   const getOrderItems = (): OrderItem[] => {
     return cart.map((item) => ({
       productId: item.$id,
       name: item.name,
-      quantity: Number(item.quantity),
-      price: Number(item.price),
-      totalPrice: Number(item.price) * Number(item.quantity),
+      quantity: item.quantity,
+      price: item.price || 0,
+      totalPrice: (item.price || 0) * item.quantity,
     }));
   };
 

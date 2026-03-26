@@ -1,5 +1,5 @@
 "use server"
-import { BUCKET_ID, ENDPOINT, NEXT_PUBLIC_PROJECT_ID, storage } from "@/lib/appwrite";
+import { BUCKET_ID, NEXT_PUBLIC_ENDPOINT, NEXT_PUBLIC_PROJECT_ID, storage } from "@/lib/appwrite";
 import { ID } from "node-appwrite";
 import { InputFile } from "node-appwrite/file";
 
@@ -18,7 +18,7 @@ export const uploadFile = async (fileData: File | undefined | string) => {
 
       file = await storage.createFile(BUCKET_ID!, ID.unique(), inputFile);
       const url = file?.$id
-        ? `${ENDPOINT}/storage/buckets/${BUCKET_ID}/files/${file.$id}/view?project=${NEXT_PUBLIC_PROJECT_ID}`
+        ? `${NEXT_PUBLIC_ENDPOINT}/storage/buckets/${BUCKET_ID}/files/${file.$id}/view?project=${NEXT_PUBLIC_PROJECT_ID}`
         : null;
       return {
         url: url,

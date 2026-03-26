@@ -8,8 +8,13 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { sendEmail } from '@/actions/mail.actions'
 
+interface ContactFormState {
+    success: boolean;
+    message: string;
+}
+
 export default function ContactForm() {
-    const [state, formAction] = useActionState(sendEmail, { message: '' })
+    const [state, formAction] = useActionState<ContactFormState, FormData>(sendEmail, { success: false, message: '' })
     const [isSubmitting, setIsSubmitting] = useState(false)
 
     const handleSubmit = async (formData: FormData) => {
@@ -68,7 +73,7 @@ export default function ContactForm() {
                 ) : 'Send Message'}
             </Button>
             {state.message && (
-                <p className={`text-center text-sm font-medium ${state.message.includes('Error') ? 'text-red-500' : 'text-green-500'} animate-fade-in`}>
+                <p className={`text-center text-sm font-medium ${state.success ? 'text-green-500' : 'text-red-500'} animate-fade-in`}>
                     {state.message}
                 </p>
             )}

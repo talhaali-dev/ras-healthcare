@@ -92,7 +92,7 @@ const OrderSummary = ({ isCheckout = false }: OrderSummaryProps) => {
                     {item.name} (x{item.quantity})
                   </span>
                   <span className="flex-shrink-0 font-medium">
-                    Rs {(parseFloat(item.price) * Number(item.quantity)).toFixed(2)}
+                    Rs {((item.price || 0) * item.quantity).toFixed(2)}
                   </span>
                 </div>
               ))}

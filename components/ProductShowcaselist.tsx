@@ -17,9 +17,9 @@ const ProductShowcaselist = async () => {
           imageSrc={product.images[0]}
           imageAlt={product.name}
           title={product.name}
-          benefits={product.benefits}
-          price={product.price}
-          inStock={Number(product.stock) > 0}
+          benefits={product.benefits || []}
+          price={String(product.price || 0)}
+          inStock={(product.stock || 0) > 0}
           originalPrice={product.originalPrice}
           rating={5}
           reviewCount={20}

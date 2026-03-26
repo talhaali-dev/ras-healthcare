@@ -24,12 +24,12 @@ import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   name: z.string().min(1, "Product name is required"),
-  price: z.string().min(1, "Price is required"),
+  price: z.coerce.number().min(0, "Price must be positive"),
   description: z.string().min(1, "Description is required"),
   images: z
     .union([z.array(z.instanceof(File)), z.array(z.string())])
     .optional(),
-  quantity: z.string().min(1, "Quantity is required"),
+  quantity: z.coerce.number().min(0, "Quantity must be positive"),
   benefits: z.array(z.object({ value: z.string() })),
 });
 
@@ -46,10 +46,10 @@ const AddProductForm = ({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: product ? product.name : "",
-      price: product ? product?.price : "",
+      price: product ? (product.price || 0) : 0,
       description: product ? product?.description : "",
       images: product ? product?.images : [],
-      quantity: product ? product?.stock : "",
+      quantity: product ? (product.stock || 0) : 0,
     //   @ts-ignore
       benefits: product?.benefits ? product.benefits.map(b => ({ value: b })) : [{ value: "" }],
     },
@@ -63,33 +63,26 @@ const AddProductForm = ({
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
+      const productData = {
+        name: values.name,
+        price: values.price,
+        description: values.description,
+        images: values.images as string[],
+        quantity: values.quantity,
+        benefits: values.benefits.map(b => b.value),
+      };
+
       if (type === "update" && product) {
-        const productData = {
-          name: values.name,
-          price: values.price,
-          description: values.description,
-          images: values.images,
-          quantity: values.quantity,
-          benefits: values.benefits.map(b => b.value),
-        };
         // @ts-ignore
         await updateProduct(product?.$id, productData);
         router.push("/admin/products");
       } else {
-        const productData = {
-          name: values.name,
-          price: Number(values.price),
-          description: values.description,
-          images: values.images,
-          quantity: values.quantity,
-          benefits: values.benefits.map(b => b.value),
-        };
         // @ts-ignore
         await createProduct(productData);
         router.push("/admin/products");
       }
     } catch (error) {
-      console.log("Error Submitting product form", error);
+      console.error("Error submitting product form:", error);
     }
     setIsLoading(false);
   }

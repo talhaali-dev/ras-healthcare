@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -7,6 +7,8 @@ import { Star, Plus, Minus, Check } from "lucide-react";
 import Image from "next/image";
 import { useCart } from "./providers/CartContext";
 import { Product } from "@/types/appwrite.types";
+import { getProductReviewsWithStats } from "@/actions/reviews.actions";
+import { Review } from "@/types/appwrite.types";
 
 interface ProductDetailProps {
   product: Product;
@@ -16,6 +18,29 @@ export default function ProductDetail({ product }: ProductDetailProps) {
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const { addToCart, cart } = useCart();
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [averageRating, setAverageRating] = useState(0);
+  const [totalReviews, setTotalReviews] = useState(0);
+  const [isLoadingReviews, setIsLoadingReviews] = useState(true);
+
+  // Fetch reviews when product changes
+  useEffect(() => {
+    const fetchReviews = async () => {
+      setIsLoadingReviews(true);
+      try {
+        const data = await getProductReviewsWithStats(product.$id);
+        setReviews(data.reviews);
+        setAverageRating(data.averageRating);
+        setTotalReviews(data.totalReviews);
+      } catch (error) {
+        console.error("Failed to fetch reviews:", error);
+      } finally {
+        setIsLoadingReviews(false);
+      }
+    };
+
+    fetchReviews();
+  }, [product.$id]);
 
   const incrementQuantity = () => {
     setQuantity((prev) => Math.min(prev + 1, 10));
@@ -82,18 +107,30 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                 </h1>
                 <div className="flex items-center mt-4">
                   <div className="flex gap-1">
-                    {[...Array(5)].map((_, i) => (
+                    {[1, 2, 3, 4, 5].map((star) => (
                       <Star
-                        key={i}
-                        className="w-5 h-5 fill-yellow-400 text-yellow-400"
+                        key={star}
+                        className={`w-5 h-5 ${
+                          star <= Math.round(averageRating)
+                            ? "fill-yellow-400 text-yellow-400"
+                            : "text-gray-300"
+                        }`}
                       />
                     ))}
                   </div>
-                  <span className="text-sm text-gray-500 ml-2">(40 review)</span>
+                  <span className="text-sm text-gray-500 ml-2">
+                    {totalReviews > 0 ? (
+                      <>
+                        {averageRating.toFixed(1)} ({totalReviews} review{totalReviews !== 1 ? "s" : ""})
+                      </>
+                    ) : (
+                      "No reviews yet"
+                    )}
+                  </span>
                 </div>
               </div>
               <div className="text-3xl font-bold text-blue-600">
-                Rs. {Number(product.price).toFixed(2)}
+                Rs. {(product.price || 0).toFixed(2)}
               </div>
 
               <div className="flex items-center gap-4">
@@ -145,7 +182,7 @@ export default function ProductDetail({ product }: ProductDetailProps) {
               </div>
 
               <div className="space-y-2 pt-4">
-                {product.benefits.map((benefit: string, index: number) => (
+                {product.benefits?.map((benefit: string, index: number) => (
                   <div key={index} className="flex items-center space-x-2">
                     <Check className="w-4 h-4 text-green-500" />
                     <span className="text-gray-700">{benefit}</span>
@@ -167,9 +204,8 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                 <TabsTrigger
                   value="reviews"
                   className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 px-0"
-                  disabled
                 >
-                  REVIEWS (40)
+                  REVIEWS ({totalReviews})
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="description" className="pt-8">
@@ -180,9 +216,86 @@ export default function ProductDetail({ product }: ProductDetailProps) {
                 </div>
               </TabsContent>
               <TabsContent value="reviews" className="pt-8">
-                <div className="prose max-w-none text-gray-600">
-                  <p>Customer reviews will be displayed here.</p>
-                </div>
+                {isLoadingReviews ? (
+                  <div className="text-center py-12 text-gray-500">
+                    Loading reviews...
+                  </div>
+                ) : totalReviews === 0 ? (
+                  <div className="text-center py-12 text-gray-500">
+                    <Star className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                    <p className="text-lg font-medium">No reviews yet</p>
+                    <p className="text-sm mt-2">Be the first to review this product!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {/* Summary Stats */}
+                    <div className="flex items-center gap-4 pb-6 border-b">
+                      <div className="text-center">
+                        <div className="text-4xl font-bold text-gray-900">
+                          {averageRating.toFixed(1)}
+                        </div>
+                        <div className="flex gap-1 justify-center mt-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              className={`w-5 h-5 ${
+                                star <= Math.round(averageRating)
+                                  ? "fill-yellow-400 text-yellow-400"
+                                  : "text-gray-300"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <p className="text-sm text-gray-500 mt-1">
+                          Based on {totalReviews} review{totalReviews !== 1 ? "s" : ""}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Reviews List */}
+                    <div className="space-y-6">
+                      {reviews.map((review) => (
+                        <div
+                          key={review.$id}
+                          className="pb-6 border-b last:border-b-0"
+                        >
+                          <div className="flex items-start justify-between mb-2">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <div className="flex gap-1">
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <Star
+                                      key={star}
+                                      className={`w-4 h-4 ${
+                                        star <= Number(review.rating)
+                                          ? "fill-yellow-400 text-yellow-400"
+                                          : "text-gray-300"
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+                                <span className="font-medium text-gray-900">
+                                  {review.customerName}
+                                </span>
+                              </div>
+                            </div>
+                            <span className="text-sm text-gray-500">
+                              {new Date(review.$createdAt).toLocaleDateString(
+                                "en-US",
+                                {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                }
+                              )}
+                            </span>
+                          </div>
+                          <p className="text-gray-700 mt-2">{review.reviewText}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </TabsContent>
             </Tabs>
           </Card>

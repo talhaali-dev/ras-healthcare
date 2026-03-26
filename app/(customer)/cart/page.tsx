@@ -45,7 +45,7 @@ const CartItem = ({ item, updateQuantity, removeFromCart }: CartItemProps) => {
           <div className="flex-grow">
             <h3 className="font-semibold text-lg">{item.name}</h3>
             <p className="text-lg font-semibold text-primary">
-              Rs {parseFloat(item.price).toFixed(2)}
+              Rs {(item.price || 0).toFixed(2)}
             </p>
           </div>
 
@@ -59,9 +59,9 @@ const CartItem = ({ item, updateQuantity, removeFromCart }: CartItemProps) => {
                 variant="outline"
                 size="icon"
                 onClick={() =>
-                  updateQuantity(item.$id, Number(item.quantity) - 1)
+                  updateQuantity(item.$id, item.quantity - 1)
                 }
-                disabled={Number(item.quantity) <= 1}
+                disabled={item.quantity <= 1}
                 aria-label="Decrease quantity"
                 className="h-8 w-8"
               >
@@ -79,7 +79,7 @@ const CartItem = ({ item, updateQuantity, removeFromCart }: CartItemProps) => {
                 variant="outline"
                 size="icon"
                 onClick={() =>
-                  updateQuantity(item.$id, Number(item.quantity) + 1)
+                  updateQuantity(item.$id, item.quantity + 1)
                 }
                 aria-label="Increase quantity"
                 className="h-8 w-8"

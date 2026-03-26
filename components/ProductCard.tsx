@@ -85,7 +85,7 @@ export default function ProductCard({ product }: { product: Product }) {
 
                         {/* Price */}
                         <p className="text-2xl font-bold text-blue-900 group-hover:text-white">
-                            Rs. {Number(price).toFixed(Number(price) % 1 === 0 ? 0 : 2)}
+                            Rs. {(price || 0).toFixed((price || 0) % 1 === 0 ? 0 : 2)}
                         </p>
                     </div>
 

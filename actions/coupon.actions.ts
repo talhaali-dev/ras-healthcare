@@ -3,6 +3,7 @@ import { COUPON_COLLECTION_ID, DATABASE_ID, databases } from "@/lib/appwrite";
 import { ID, Models } from "appwrite";
 import { revalidatePath } from "next/cache";
 import { Query } from "node-appwrite";
+import { createCouponSchema, validateCouponSchema } from "@/lib/validations";
 
 export interface Coupon extends Models.Document {
   code: string;
@@ -19,8 +20,8 @@ export interface Coupon extends Models.Document {
 export async function getCoupons(): Promise<Coupon[]> {
   try {
     const response = await databases.listDocuments(
-      DATABASE_ID!,
-      COUPON_COLLECTION_ID!
+      DATABASE_ID,
+      COUPON_COLLECTION_ID
     );
     return response.documents.map((doc) => doc as unknown as Coupon);
   } catch (error) {
@@ -33,12 +34,15 @@ export async function createCoupon(
   coupon: Omit<Coupon, "$id" | "used_count">
 ): Promise<Coupon> {
   try {
+    // Validate input
+    const validatedData = createCouponSchema.parse(coupon);
+
     const response = await databases.createDocument(
-      DATABASE_ID!,
-      COUPON_COLLECTION_ID!,
+      DATABASE_ID,
+      COUPON_COLLECTION_ID,
       ID.unique(),
       {
-        ...coupon,
+        ...validatedData,
         used_count: 0,
       }
     );
@@ -57,8 +61,8 @@ export async function updateCoupon(
 ): Promise<Coupon> {
   try {
     const response = await databases.updateDocument(
-      DATABASE_ID!,
-      COUPON_COLLECTION_ID!,
+      DATABASE_ID,
+      COUPON_COLLECTION_ID,
       id,
       {
         ...coupon,
@@ -76,7 +80,7 @@ export async function updateCoupon(
 
 export async function deleteCoupon(id: string): Promise<void> {
   try {
-    await databases.deleteDocument(DATABASE_ID!, COUPON_COLLECTION_ID!, id);
+    await databases.deleteDocument(DATABASE_ID, COUPON_COLLECTION_ID, id);
     revalidatePath("/admin/coupon");
     revalidatePath("/");
 
@@ -88,12 +92,15 @@ export async function deleteCoupon(id: string): Promise<void> {
 
 export async function validateCoupon(code: string) {
   try {
+    // Validate input
+    validateCouponSchema.parse({ code });
+
     // Fetch the coupon from the database
     const coupons = await databases.listDocuments(
-      DATABASE_ID!,
-      COUPON_COLLECTION_ID!,
+      DATABASE_ID,
+      COUPON_COLLECTION_ID,
       [
-        Query.equal("code", code),
+        Query.equal("code", code.toUpperCase()),
         Query.equal("is_active", true),
         Query.greaterThan("valid_until", new Date().toISOString()),
       ]
@@ -114,7 +121,6 @@ export async function validateCoupon(code: string) {
 
     // Increment the used count
     await updateCoupon(coupon.$id, {
-      //   ...coupon,
       used_count: coupon.used_count + 1,
     });
 

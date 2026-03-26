@@ -24,8 +24,7 @@ export function ProductCard({ product }: ProductCardProps) {
         <div className="absolute top-2 right-2">
           <UpdateStockDialog
             productId={product.$id}
-            // @ts-ignore
-            quantity={product.stock}
+            quantity={product.stock || 0}
           >
             <Button
               variant="secondary"
@@ -40,9 +39,9 @@ export function ProductCard({ product }: ProductCardProps) {
       <CardContent className="p-4">
         <h3 className="font-semibold text-lg mb-2">{product.name}</h3>
         <p className="text-blue-600 font-bold">
-          {Number(product.price).toFixed(2)} PKR
+          {(product.price || 0).toFixed(2)} PKR
         </p>
-        <p className="text-gray-600">Quantity: {product.quantity}</p>
+        <p className="text-gray-600">Quantity: {product.stock}</p>
       </CardContent>
       <CardFooter className="bg-gray-50 p-4 flex justify-end space-x-2">
         <Button
